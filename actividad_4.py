@@ -86,30 +86,78 @@ def download_files():
         return
 
     from tkinter import filedialog
+    import os
 
     for each in selected_items2:
         selected_file = dropbox._files[each]
 
-        #No descargar carpetas ni el ".."
+        #Si es una carpeta:
         if selected_file['.tag'] == 'folder':
-            continue
+            if dropbox._path == "/":
+                folder_path = "/" + selected_file['name']
+            else:
+                folder_path = dropbox._path + "/" + selected_file['name']
 
-        file_name = selected_file['name']
-        if dropbox._path == "/":
-            path = "/" + file_name
-        else:
-            path = dropbox._path + "/" + file_name
-
-        content = dropbox.download_file(path)
-        if content:
-            save_path = filedialog.asksaveasfilename(
-                initialfile=file_name,
-                title=f"Guardar {file_name} como..."
+            #Donde se quiere guardar?
+            save_dir = filedialog.askdirectory(
+                title=f"Selecciona dónde guardar '{selected_file['name']}'"
             )
-            if save_path:
-                with open(save_path, 'wb') as f:
-                    f.write(content)
-                print(f"Guardado localmente: {save_path}")
+            if not save_dir:
+                continue
+
+            entries = dropbox.download_folder(folder_path)
+            files_only = [e for e in entries if e['.tag'] == 'file']
+
+            if not files_only:
+                print("La carpeta está vacía")
+                continue
+
+            popup, progress_var, progress_bar = helper.progress("transfer_file", f"Descargando carpeta '{selected_file['name']}'...")
+            progress = 0
+            progress_step = float(100.0 / len(files_only))
+
+            for entry in entries:
+                rel_path = entry['path_display'][len(folder_path):]
+                local_path = os.path.join(save_dir, selected_file['name'] + rel_path)
+
+                if entry['.tag'] == 'folder':
+                    #Crear subcarpeta local
+                    os.makedirs(local_path, exist_ok=True)
+
+                elif entry['.tag'] == 'file':
+                    #Esto nos fallaba, por eso tenemos que asegurar que existe el directorio padre
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    content = dropbox.download_file(entry['path_display'])
+                    if content:
+                        with open(local_path, 'wb') as f:
+                            f.write(content)
+                        print(f"Guardado: {local_path}")
+
+                    progress += progress_step
+                    progress_var.set(progress)
+                    progress_bar.update()
+                    newroot.update()
+
+            popup.destroy()
+
+        #lo mismo pero para fichero
+        else:
+            file_name = selected_file['name']
+            if dropbox._path == "/":
+                path = "/" + file_name
+            else:
+                path = dropbox._path + "/" + file_name
+
+            content = dropbox.download_file(path)
+            if content:
+                save_path = filedialog.asksaveasfilename(
+                    initialfile=file_name,
+                    title=f"Guardar {file_name} como..."
+                )
+                if save_path:
+                    with open(save_path, 'wb') as f:
+                        f.write(content)
+                    print(f"Guardado localmente: {save_path}")
 
 def name_folder(folder_name):
     if dropbox._path == "/":

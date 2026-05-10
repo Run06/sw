@@ -175,7 +175,7 @@ class Dropbox:
         else:
             print("Error al crear carpeta: ", respuesta.text)
 
-    def download_file(self, file_path):
+    def download_file(self, file_path): #para descargar un file (no carpeta)
         print("/download")
         # https://www.dropbox.com/developers/documentation/http/documentation#files-download
         uri = 'https://content.dropboxapi.com/2/files/download'
@@ -192,3 +192,33 @@ class Dropbox:
         else:
             print("Error en download: ", respuesta.text)
             return None
+
+    def download_folder(self, folder_path): #para descargar carpetas
+        print("/list_folder (recursive)")
+        uri = 'https://api.dropboxapi.com/2/files/list_folder'
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/json'
+        }
+        datos = {'path': folder_path, 'recursive': True}
+        respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+
+        if respuesta.status_code != 200:
+            print("Error listando carpeta recursiva:", respuesta.text)
+            return []
+
+        resultado = respuesta.json()
+        entries = resultado.get('entries', [])
+
+        # Paginación: si hay más resultados, seguir pidiendo con el cursor
+        while resultado.get('has_more'):
+            cursor = resultado['cursor']
+            respuesta = requests.post(
+                'https://api.dropboxapi.com/2/files/list_folder/continue',
+                headers=cabeceras,
+                data=json.dumps({'cursor': cursor})
+            )
+            resultado = respuesta.json()
+            entries.extend(resultado.get('entries', []))
+
+        return entries
