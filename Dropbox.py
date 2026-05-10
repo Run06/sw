@@ -38,7 +38,7 @@ class Dropbox:
         print("\tRequest from the browser received at local server:")
         print (peticion)
 
-        # buscar en solicitud el "auth_code"
+        #buscar en solicitud el "auth_code"
         primera_linea =peticion.decode('UTF8').split('\n')[0]
         aux_auth_code = primera_linea.split(' ')[1]
         auth_code = aux_auth_code[7:].split('&')[0]
