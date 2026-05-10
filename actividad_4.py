@@ -7,7 +7,7 @@ import helper
 import time
 from urllib.parse import unquote
 
-##########################################################################################################
+###########################################################################################################
 
 def make_entry(parent, caption, width=None, **options):
     label = tk.Label(parent, text=caption)

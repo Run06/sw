@@ -44,7 +44,7 @@ class Dropbox:
         auth_code = aux_auth_code[7:].split('&')[0]
         print ("\tauth_code: " + auth_code)
 
-        # devolver una respuesta al usuario
+        # devolver una respuesta al Usuario
         http_response = "HTTP/1.1 200 OK\r\n\r\n" \
                         "<html>" \
                         "<head><title>Proba</title></head>" \
