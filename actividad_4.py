@@ -81,6 +81,36 @@ def delete_files():
     popup.destroy()
     dropbox.list_folder(msg_listbox2)
 
+def download_files():
+    if not selected_items2:
+        return
+
+    from tkinter import filedialog
+
+    for each in selected_items2:
+        selected_file = dropbox._files[each]
+
+        #No descargar carpetas ni el ".."
+        if selected_file['.tag'] == 'folder':
+            continue
+
+        file_name = selected_file['name']
+        if dropbox._path == "/":
+            path = "/" + file_name
+        else:
+            path = dropbox._path + "/" + file_name
+
+        content = dropbox.download_file(path)
+        if content:
+            save_path = filedialog.asksaveasfilename(
+                initialfile=file_name,
+                title=f"Guardar {file_name} como..."
+            )
+            if save_path:
+                with open(save_path, 'wb') as f:
+                    f.write(content)
+                print(f"Guardado localmente: {save_path}")
+
 def name_folder(folder_name):
     if dropbox._path == "/":
         dropbox._path = dropbox._path + str(folder_name)
@@ -250,6 +280,8 @@ button2 = tk.Button(frame2, borderwidth=4,  background="#C6185C",fg="white", tex
 button2.pack(padx=2, pady=2)
 button3 = tk.Button(frame2, borderwidth=4, background="#7C86FF",fg="white", text="Create folder", width=10, pady=8, command=create_folder)
 button3.pack(padx=2, pady=2)
+button4 = tk.Button(frame2, borderwidth=4, background="#28a745", fg="white", text="Download", width=10, pady=8, command=download_files)
+button4.pack(padx=2, pady=2)
 frame2.grid(row=1, column=3,  ipadx=10, ipady=10)
 
 for each in pdfs:

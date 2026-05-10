@@ -5,8 +5,8 @@ from socket import AF_INET, socket, SOCK_STREAM
 import json
 import helper
 
-app_key = 'XXX'
-app_secret = 'XXX'
+app_key = 'f8wu903crfyp2ex'
+app_secret = 'ynjhsiv5muh98gx'
 server_addr = "localhost"
 server_port = 8070
 redirect_uri = "http://" + server_addr + ":" + str(server_port)
@@ -174,3 +174,21 @@ class Dropbox:
             print(f"Carpeta creada: {path}")
         else:
             print("Error al crear carpeta: ", respuesta.text)
+
+    def download_file(self, file_path):
+        print("/download")
+        # https://www.dropbox.com/developers/documentation/http/documentation#files-download
+        uri = 'https://content.dropboxapi.com/2/files/download'
+        arg = {"path": file_path}
+        cabeceras = {
+            "Authorization": "Bearer " + self._access_token,
+            "Dropbox-API-Arg": json.dumps(arg)
+            #Aqui no hay que poner Content-Type ya que la API lo exige asi
+        }
+        respuesta = requests.post(uri, headers=cabeceras)
+        if respuesta.status_code == 200:
+            print(f"Archivo {file_path} descargado correctamente")
+            return respuesta.content   # bytes del fichero
+        else:
+            print("Error en download: ", respuesta.text)
+            return None
